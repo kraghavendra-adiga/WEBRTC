@@ -1,4 +1,5 @@
 // public/client.js
+
 let localStream;
 let peerConnection;
 let roomId;
@@ -15,6 +16,8 @@ const configuration = {
         { urls: 'stun:stun1.l.google.com:19302' }
     ]
 };
+
+const socket = io();  // Initialize socket.io connection
 
 async function setupMediaStream() {
     try {
@@ -41,7 +44,7 @@ async function initializeRoomConnection() {
     const success = await setupMediaStream();
     if (success) {
         socket.emit('join-room', roomId);
-        joinButton.disabled = true;
+        joinButton.disabled = true; // Disable the button once clicked
     }
 }
 
@@ -49,12 +52,12 @@ async function createPeerConnection() {
     try {
         peerConnection = new RTCPeerConnection(configuration);
 
-        // Add local stream
+        // Add local stream tracks to peer connection
         localStream.getTracks().forEach(track => {
             peerConnection.addTrack(track, localStream);
         });
 
-        // Handle incoming stream
+        // Handle incoming remote stream
         peerConnection.ontrack = event => {
             console.log('Received remote stream');
             if (remoteVideo.srcObject !== event.streams[0]) {
@@ -147,12 +150,12 @@ socket.on('peer-disconnected', () => {
         peerConnection.close();
         peerConnection = null;
     }
-    joinButton.disabled = false;
+    joinButton.disabled = false; // Re-enable button for another connection attempt
 });
 
 socket.on('room-full', () => {
     alert('Room is full. Please try another room ID.');
-    joinButton.disabled = false;
+    joinButton.disabled = false; // Re-enable button
 });
 
 // Event listeners
